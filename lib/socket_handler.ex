@@ -2,9 +2,11 @@ defmodule HivenRtcHub.SocketHandler do
   @behaviour :cowboy_websocket
 
   @heartbeat_interval 5000
+  @max_heartbeat_failures 3
 
   def init(request, _state) do
-    state = %{server_name: nil, region: nil, last_hbt: nil, encoding: :json}
+    state = %{server_name: nil, region: nil, last_hbt: nil,
+    encoding: :json}
 
     {:cowboy_websocket, request, state}
   end
@@ -26,6 +28,11 @@ defmodule HivenRtcHub.SocketHandler do
 
           {:reply, construct_socket_msg(state.encoding, %{op: 3}), %{state | server_name: server_name, region: region}}
         4 ->
+          %{"active_rtc_sessions" => active_rtc_sessions} = json["d"]
+
+          [{_key, old_server_state}] = :ets.lookup(:servers, state.server_name)
+          :ets.insert(:servers, {state.server_name, %{old_server_state | active_rtc_sessions: active_rtc_sessions}})
+
           {:ok, %{state | last_hbt: :os.system_time(:millisecond)}}
         _ -> {:stop, state}
       end
