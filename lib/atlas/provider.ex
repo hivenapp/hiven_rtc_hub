@@ -10,6 +10,7 @@ defmodule HivenRtcHub.Atlas.Provider do
       id: "gcloud",
       friendly_name: "Google Cloud",
       regions_served: ["us-east", "us-west", "eu-west"],
+      asn: 19527,
       hiven_net: false
     }
   }
@@ -18,6 +19,7 @@ defmodule HivenRtcHub.Atlas.Provider do
     :id,
     :friendly_name,
     :regions_served,
+    :asn,
     :hiven_net
   ]
 

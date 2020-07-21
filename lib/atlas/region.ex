@@ -29,7 +29,7 @@ defmodule HivenRtcHub.Atlas.Region do
   # defguard is_region(term)
   #   when is_string(term) and term in @regions
 
-  @spec get(term) :: map()
+  @spec get(term) :: __MODULE__ | nil
   def get(id), do: @regions[id]
 
   def get_servers(region) do
