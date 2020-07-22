@@ -10,8 +10,6 @@ defmodule HivenRtcHub.SocketHandler do
   @max_error_boundary_millis 200
 
   def init(request, _state) do
-    Process.flag(:trap_exit, true)
-
     state = %{server_name: nil, region: nil, last_hbt: nil, hbt_failures: 0, encoding: :json}
 
     {:cowboy_websocket, request, state}
@@ -51,6 +49,13 @@ defmodule HivenRtcHub.SocketHandler do
     end
   end
 
+  def terminate(:ok, _req, state) do
+    :ets.delete(:servers, state.server_name)
+    :ets.delete_object(:servers_by_region, {state.region, state.server_name})
+
+    {:ok, state}
+  end
+
   # Init / Auth
   defp handle_incoming_payload(%{"op" => 2, "d" => data}, state) do
     %{"server_name" => server_name, "region" => region} = data
@@ -64,18 +69,10 @@ defmodule HivenRtcHub.SocketHandler do
 
         Logger.info("#{server_name}:#{region} -> Joined RTC Hub")
 
-        Process.flag(:trap_exit, true)
         Process.send_after(self(), {:heartbeat_check}, @heartbeat_interval + @max_error_boundary_millis)
 
         {:reply, construct_socket_msg(state.encoding, %{op: 3}), %{state | server_name: server_name, region: region, last_hbt: :os.system_time(:millisecond)}}
     end
-  end
-
-  def terminate(_reason, _state) do
-    Logger.debug(" -> disconnected")
-    IO.puts "disconnected"
-    # :ets.delete(:servers, {server_name})
-    # :ets.delete(:servers_by_region, {region, server_name})
   end
 
   # Heartbeat

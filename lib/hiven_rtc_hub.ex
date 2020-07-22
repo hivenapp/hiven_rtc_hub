@@ -27,7 +27,6 @@ defmodule HivenRtcHub do
     # ]
 
     children = [
-      # {GenRegistry, worker_module: HivenSwarm.Sessions.StatefulSession},
       # {Cluster.Supervisor, [topologies, [name: HivenSwarm.ClusterSupervisor]]},
       Plug.Cowboy.child_spec(scheme: :http, plug: HivenRtcHub.Router, options: [port: 4001, dispatch: dispatch(), protocol_options: [idle_timeout: :infinity]]),
     ]
